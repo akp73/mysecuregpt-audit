@@ -246,8 +246,8 @@ export default function App() {
                   </>
                 ) : (
                   <>
-                    <Search className="w-5 h-5" />
-                    <span>Audit Website</span>
+                    <Search className="w-5 h-5 shrink-0" />
+                    <span className="leading-tight text-center">See What to Fix</span>
                   </>
                 )}
               </button>
