@@ -44,10 +44,10 @@ export const Header: React.FC<HeaderProps> = () => {
           </a>
         </div>
 
-        {/* Right Side Brand Text matching headline font size */}
+        {/* Right Side Brand Text */}
         <div className="text-right flex items-center">
-          <span className="text-xl sm:text-2xl md:text-3xl lg:text-[2.15rem] xl:text-[2.35rem] font-extrabold text-black tracking-tight leading-tight font-inter sm:whitespace-nowrap">
-            TeamLogic IT - Your IT Partner
+          <span className="text-lg sm:text-xl md:text-2xl lg:text-[1.75rem] xl:text-[1.95rem] font-extrabold text-black tracking-tight leading-tight font-inter sm:whitespace-nowrap">
+            TeamLogic IT - Your Technology Partner
           </span>
         </div>
       </div>
