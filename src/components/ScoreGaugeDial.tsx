@@ -299,11 +299,11 @@ export const ScoreGaugeDial: React.FC<ScoreGaugeDialProps> = ({
       </div>
 
       {/* TOP: Speedometer Dial on Left + 7 Responded Tools on Right */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center py-2">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start pt-1 pb-3">
         {/* Left Column: Speedometer Dial */}
-        <div className="lg:col-span-5 flex flex-col items-center justify-center text-center">
+        <div className="lg:col-span-5 flex flex-col items-center justify-start text-center pt-1 sm:pt-2">
           {/* Semi-circular gauge SVG */}
-          <div className="relative w-72 sm:w-80 h-40 sm:h-44 flex items-end justify-center">
+          <div className="relative w-72 sm:w-80 h-38 sm:h-42 flex items-end justify-center -mt-1 sm:-mt-2">
             <svg
               viewBox="0 0 220 125"
               className="w-full h-full overflow-visible"
@@ -352,7 +352,7 @@ export const ScoreGaugeDial: React.FC<ScoreGaugeDialProps> = ({
           </div>
 
           {/* Level Badge Pill */}
-          <div className="mt-4">
+          <div className="mt-3 sm:mt-3.5">
             <span
               className={`inline-block text-white text-xs sm:text-sm font-black uppercase px-4 py-1 rounded-full tracking-wider shadow-xs ${mainColor.badge}`}
             >
@@ -368,9 +368,9 @@ export const ScoreGaugeDial: React.FC<ScoreGaugeDialProps> = ({
             Composite Score
           </p>
 
-          {/* Download Detailed Report & What to Fix Button */}
+          {/* Download Detailed Report & What to Fix Button with increased breathing room */}
           {onDownloadReport && (
-            <div className="mt-4 pt-1">
+            <div className="mt-7 sm:mt-9 pt-2">
               <button
                 type="button"
                 onClick={onDownloadReport}
