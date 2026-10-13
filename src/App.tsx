@@ -27,6 +27,14 @@ import { BenchmarkMatrixView } from './components/BenchmarkMatrixView';
 import { TeamLogicLogo, TeamLogicBrandBar } from './components/TeamLogicLogo';
 import { AuditReport } from './types/audit';
 import { INITIAL_INDUSTRY_OPTIONS } from './constants/industries';
+import { defaultPgReport } from './data/defaultReport';
+
+// In-memory audit cache to avoid repeated audit executions
+const auditMemoryCache = new Map<string, AuditReport>();
+auditMemoryCache.set('https://us.pg.com/_consumer_goods', defaultPgReport);
+auditMemoryCache.set('us.pg.com_consumer_goods', defaultPgReport);
+auditMemoryCache.set('https://us.pg.com', defaultPgReport);
+auditMemoryCache.set('us.pg.com', defaultPgReport);
 
 export default function App() {
   const [urlInput, setUrlInput] = useState('');
@@ -39,7 +47,8 @@ export default function App() {
     'overview' | 'tools' | 'capabilities' | 'robots' | 'schema' | 'benchmark' | 'remediation'
   >('overview');
 
-  const [report, setReport] = useState<AuditReport | null>(null);
+  // Load results from memory when page loads for the first time
+  const [report, setReport] = useState<AuditReport | null>(defaultPgReport);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -92,15 +101,27 @@ export default function App() {
       .catch((err) => console.warn('Could not load industries from API:', err));
   }, []);
 
-  // Initial audit of default url (https://us.pg.com/)
-  useEffect(() => {
-    runAudit('https://us.pg.com/', 'consumer_goods');
-  }, []);
+  // Do NOT run audit for https://us.pg.com/ every time page loads.
+  // Initial results are loaded directly from memory (defaultPgReport).
 
   const runAudit = async (targetUrl: string, targetIndustry: string) => {
     if (!targetUrl.trim()) return;
-    setIsLoading(true);
     setError(null);
+
+    // Check in-memory cache first to avoid re-running audits
+    const normalizedTarget = targetUrl.toLowerCase().trim().replace(/^https?:\/\//, '').replace(/\/+$/, '');
+    const cacheKey = `${normalizedTarget}_${targetIndustry}`;
+
+    if (auditMemoryCache.has(cacheKey)) {
+      setReport(auditMemoryCache.get(cacheKey)!);
+      return;
+    }
+    if (auditMemoryCache.has(normalizedTarget)) {
+      setReport(auditMemoryCache.get(normalizedTarget)!);
+      return;
+    }
+
+    setIsLoading(true);
 
     try {
       const response = await fetch('/api/audit', {
@@ -115,6 +136,9 @@ export default function App() {
       }
 
       const data: AuditReport = await response.json();
+      // Save results in memory
+      auditMemoryCache.set(cacheKey, data);
+      auditMemoryCache.set(normalizedTarget, data);
       setReport(data);
     } catch (err: any) {
       console.error('Audit failed:', err);

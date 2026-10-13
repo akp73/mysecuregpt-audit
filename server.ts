@@ -134,6 +134,9 @@ app.get('/api/industries', (_req: Request, res: Response) => {
   res.json({ industries });
 });
 
+// In-memory audit cache to avoid repeated crawling
+const serverAuditMemoryCache = new Map<string, AuditReport>();
+
 // Main Audit Route
 app.post('/api/audit', async (req: Request, res: Response) => {
   const { url: rawUrl, industry = 'msp_it' } = req.body;
@@ -144,6 +147,13 @@ app.post('/api/audit', async (req: Request, res: Response) => {
   }
 
   const { fullUrl, domain, baseOrigin } = normalizeTarget(rawUrl);
+  const cacheKey = `${domain.toLowerCase()}_${industry}`;
+
+  // Return from memory cache if already audited
+  if (serverAuditMemoryCache.has(cacheKey)) {
+    res.json(serverAuditMemoryCache.get(cacheKey)!);
+    return;
+  }
 
   try {
     // 1. Fetch robots.txt
@@ -310,6 +320,10 @@ app.post('/api/audit', async (req: Request, res: Response) => {
     }).catch((notifErr: any) => {
       console.warn('[Audit Notification] Error dispatching email notification:', notifErr?.message);
     });
+
+    // Save in memory cache
+    serverAuditMemoryCache.set(cacheKey, report);
+    serverAuditMemoryCache.set(domain.toLowerCase(), report);
 
     res.json(report);
   } catch (err: any) {
