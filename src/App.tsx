@@ -116,7 +116,7 @@ export default function App() {
           <div className="p-6 sm:p-8 bg-gradient-to-br from-white via-emerald-50/20 to-slate-50">
             <div className="max-w-3xl">
               <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-black tracking-tight leading-tight font-inter">
-                Will Buyer's AI Agent Send You Leads?
+                Can Your Website Turn AI Searches Into Leads?
               </h1>
             </div>
 
