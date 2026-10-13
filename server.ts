@@ -299,7 +299,7 @@ app.post('/api/audit', async (req: Request, res: Response) => {
       businessName,
       compositeScore: composite.compositeScore,
       grade: composite.grade,
-      levelTitle: composite.dialBreakdown?.levelTitle || composite.levelTitle,
+      levelTitle: composite.dialBreakdown?.levelTitle || '',
       industry: benchmark.industryName,
       crawlability: composite.dimensionScores.crawlability,
       structuredSchema: composite.dimensionScores.structuredSchema,
