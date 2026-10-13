@@ -28,6 +28,7 @@ import { TeamLogicLogo, TeamLogicBrandBar } from './components/TeamLogicLogo';
 import { AuditReport } from './types/audit';
 import { INITIAL_INDUSTRY_OPTIONS } from './constants/industries';
 import { defaultPgReport } from './data/defaultReport';
+import { buildIndustryBenchmark } from './utils/industryBenchmark';
 
 // In-memory audit cache to avoid repeated audit executions
 const auditMemoryCache = new Map<string, AuditReport>();
@@ -139,6 +140,9 @@ export default function App() {
       // Save results in memory
       auditMemoryCache.set(cacheKey, data);
       auditMemoryCache.set(normalizedTarget, data);
+      if (data.benchmark?.industryId) {
+        setIndustry(data.benchmark.industryId);
+      }
       setReport(data);
     } catch (err: any) {
       console.error('Audit failed:', err);
@@ -159,10 +163,24 @@ export default function App() {
     runAudit(presetUrl, presetIndustry);
   };
 
-  const handleSwitchIndustry = (newIndustryId: string) => {
+  // Synchronizes Industry selection between Headline box and Market Intelligence & Peer Benchmark
+  const handleIndustryChange = (newIndustryId: string) => {
     setIndustry(newIndustryId);
     if (report) {
-      runAudit(report.domain, newIndustryId);
+      const newBenchmark = buildIndustryBenchmark(
+        newIndustryId,
+        report.composite?.compositeScore ?? 0,
+        report.composite?.dimensionScores?.crawlability ?? 0,
+        report.composite?.dimensionScores?.structuredSchema ?? 0,
+        report.composite?.dimensionScores?.actionability ?? 0,
+        report.domain,
+        report.businessName
+      );
+      setReport({
+        ...report,
+        industry: newBenchmark.industryName,
+        benchmark: newBenchmark,
+      });
     }
   };
 
@@ -205,7 +223,7 @@ export default function App() {
                 </label>
                 <select
                   value={industry}
-                  onChange={(e) => setIndustry(e.target.value)}
+                  onChange={(e) => handleIndustryChange(e.target.value)}
                   className="w-full bg-slate-50/50 border-2 border-slate-300 rounded-xl sm:rounded-2xl px-4 py-3.5 sm:py-4 text-sm sm:text-base text-slate-800 font-semibold focus:outline-none focus:border-[#008752] focus:ring-2 focus:ring-[#008752]/20 cursor-pointer shadow-xs"
                 >
                   {industries.map((ind) => (
@@ -319,8 +337,9 @@ export default function App() {
                 <IndustryBenchmarkView
                   benchmark={report.benchmark}
                   availableIndustries={industries}
-                  onSelectIndustry={handleSwitchIndustry}
+                  onSelectIndustry={handleIndustryChange}
                   isLoading={isLoading}
+                  selectedIndustry={industry}
                 />
               </div>
 

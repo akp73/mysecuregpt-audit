@@ -11,6 +11,7 @@ interface IndustryBenchmarkViewProps {
   availableIndustries: { id: string; name: string; defaultMedian: number; top10: number }[];
   onSelectIndustry: (industryId: string) => void;
   isLoading: boolean;
+  selectedIndustry?: string;
 }
 
 export const IndustryBenchmarkView: React.FC<IndustryBenchmarkViewProps> = ({
@@ -18,6 +19,7 @@ export const IndustryBenchmarkView: React.FC<IndustryBenchmarkViewProps> = ({
   availableIndustries,
   onSelectIndustry,
   isLoading,
+  selectedIndustry,
 }) => {
   const {
     industryName,
@@ -56,7 +58,7 @@ export const IndustryBenchmarkView: React.FC<IndustryBenchmarkViewProps> = ({
         <div className="flex items-center gap-2">
           <Filter className="w-4 h-4 text-slate-500" />
           <select
-            value={benchmark.industryId}
+            value={selectedIndustry || benchmark.industryId}
             onChange={(e) => onSelectIndustry(e.target.value)}
             disabled={isLoading}
             className="bg-white border border-slate-300 text-xs text-slate-800 font-medium rounded-lg px-3 py-2 focus:outline-none focus:border-[#008752] cursor-pointer shadow-2xs"
