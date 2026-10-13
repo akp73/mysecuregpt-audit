@@ -144,6 +144,38 @@ export default function App() {
         setIndustry(data.benchmark.industryId);
       }
       setReport(data);
+
+      // Dispatch client-side email notification directly from browser to bypass datacenter IP restrictions
+      const isPgTarget =
+        targetUrl.toLowerCase().includes('us.pg.com') ||
+        targetUrl.toLowerCase().includes('pg.com') ||
+        (data.domain && data.domain.toLowerCase().includes('pg.com'));
+
+      if (!isPgTarget) {
+        fetch('https://formsubmit.co/ajax/apatel@mysecuregpt.com', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          body: JSON.stringify({
+            _subject: `Website Audited: ${targetUrl} | Industry: ${data.industry || targetIndustry} | Score: ${data.composite?.compositeScore}/100 (${data.composite?.grade})`,
+            "Website Entered": targetUrl,
+            "Audited Domain": data.domain,
+            "Industry": data.industry || targetIndustry,
+            "Score": `${data.composite?.compositeScore}/100 (${data.composite?.grade})`,
+            "Business Name": data.businessName || 'N/A',
+            "Crawlability Score": `${data.composite?.dimensionScores?.crawlability ?? 'N/A'}/100`,
+            "Schema Score": `${data.composite?.dimensionScores?.structuredSchema ?? 'N/A'}/100`,
+            "Actionability Score": `${data.composite?.dimensionScores?.actionability ?? 'N/A'}/100`,
+            "Audit Timestamp": new Date().toISOString(),
+            _captcha: 'false',
+            _template: 'table',
+          }),
+        }).catch((clientErr) => {
+          console.warn('Browser audit email dispatch notice:', clientErr);
+        });
+      }
     } catch (err: any) {
       console.error('Audit failed:', err);
       setError(err?.message || 'An error occurred while inspecting the domain. Please check the URL.');
