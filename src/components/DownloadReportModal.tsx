@@ -249,7 +249,7 @@ export const DownloadReportModal: React.FC<DownloadReportModalProps> = ({
                         setName(e.target.value);
                         if (formError) setFormError(null);
                       }}
-                      placeholder="e.g. Alok Patel"
+                      placeholder="e.g. Bruce Wayne"
                       required
                       className="w-full bg-slate-50 border border-slate-300 rounded-xl pl-9 pr-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#008752] focus:ring-1 focus:ring-[#008752] transition-colors"
                     />
@@ -272,7 +272,7 @@ export const DownloadReportModal: React.FC<DownloadReportModalProps> = ({
                         setCompanyName(e.target.value);
                         if (formError) setFormError(null);
                       }}
-                      placeholder="e.g. MySecureGPT or Acme Corp"
+                      placeholder="e.g. Wayne Enterprises"
                       required
                       className="w-full bg-slate-50 border border-slate-300 rounded-xl pl-9 pr-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#008752] focus:ring-1 focus:ring-[#008752] transition-colors"
                     />
@@ -295,7 +295,7 @@ export const DownloadReportModal: React.FC<DownloadReportModalProps> = ({
                         setEmail(e.target.value);
                         if (formError) setFormError(null);
                       }}
-                      placeholder="e.g. alok@company.com"
+                      placeholder="e.g. batsignal@wayne.com"
                       required
                       className="w-full bg-slate-50 border border-slate-300 rounded-xl pl-9 pr-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#008752] focus:ring-1 focus:ring-[#008752] transition-colors"
                     />

@@ -368,9 +368,9 @@ export const ScoreGaugeDial: React.FC<ScoreGaugeDialProps> = ({
             Composite Score
           </p>
 
-          {/* Download Detailed Report & What to Fix Button with increased breathing room */}
+          {/* Download Detailed Report & What to Fix Button with extra breathing room */}
           {onDownloadReport && (
-            <div className="mt-7 sm:mt-9 pt-2">
+            <div className="mt-11 sm:mt-14 pt-3">
               <button
                 type="button"
                 onClick={onDownloadReport}
