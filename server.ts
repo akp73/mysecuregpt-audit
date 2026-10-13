@@ -14,6 +14,7 @@ import {
 } from './server/scanner.ts';
 import { buildIndustryBenchmark, getAllIndustriesList } from './server/industryData.ts';
 import { runAgentTaskSimulation } from './server/geminiAgent.ts';
+import { sendLeadNotification, getCapturedLeads } from './server/mailer.ts';
 import type { AuditReport, MachineManifests } from './src/types/audit.ts';
 
 dotenv.config();
@@ -256,6 +257,83 @@ app.post('/api/audit', async (req: Request, res: Response) => {
       details: err?.message || 'Network or parsing error.',
     });
   }
+});
+
+// Lead capture endpoint (dispatches email notification to apatel@teamlogicit.com)
+const handleLeadSubmission = async (req: Request, res: Response) => {
+  const {
+    name,
+    companyName,
+    email,
+    domain,
+    targetUrl,
+    compositeScore,
+    grade,
+    levelTitle,
+    crawlability,
+    structuredSchema,
+    actionability,
+    industry,
+  } = req.body || {};
+
+  if (!name || typeof name !== 'string' || !name.trim()) {
+    res.status(400).json({ error: 'Name is required.' });
+    return;
+  }
+  if (!companyName || typeof companyName !== 'string' || !companyName.trim()) {
+    res.status(400).json({ error: 'Company name is required.' });
+    return;
+  }
+  if (!email || typeof email !== 'string' || !email.includes('@')) {
+    res.status(400).json({ error: 'A valid email address is required.' });
+    return;
+  }
+
+  const clientIp = (req.headers['x-forwarded-for'] as string) || req.socket.remoteAddress || 'unknown';
+
+  try {
+    const result = await sendLeadNotification({
+      name: name.trim(),
+      companyName: companyName.trim(),
+      email: email.trim(),
+      domain: domain ? String(domain).trim() : undefined,
+      targetUrl: targetUrl ? String(targetUrl).trim() : undefined,
+      compositeScore: typeof compositeScore === 'number' ? compositeScore : undefined,
+      grade: grade ? String(grade) : undefined,
+      levelTitle: levelTitle ? String(levelTitle) : undefined,
+      crawlability: typeof crawlability === 'number' ? crawlability : undefined,
+      structuredSchema: typeof structuredSchema === 'number' ? structuredSchema : undefined,
+      actionability: typeof actionability === 'number' ? actionability : undefined,
+      industry: industry ? String(industry) : undefined,
+      submittedAt: new Date().toISOString(),
+      ip: clientIp,
+    });
+
+    res.json({
+      success: true,
+      message: 'Lead received and email notification dispatched to apatel@teamlogicit.com.',
+      channels: result.channels,
+    });
+  } catch (err: any) {
+    console.error('Lead submission dispatch error:', err);
+    res.status(500).json({
+      error: 'Failed to process lead notification.',
+      details: err?.message || 'Unknown error',
+    });
+  }
+};
+
+app.post('/api/report-lead', handleLeadSubmission);
+app.post('/api/submit-lead', handleLeadSubmission);
+
+// Admin inspection endpoint for captured leads
+app.get('/api/leads', (_req: Request, res: Response) => {
+  const leads = getCapturedLeads();
+  res.json({
+    total: leads.length,
+    recipient: process.env.NOTIFICATION_EMAIL || 'apatel@teamlogicit.com',
+    leads,
+  });
 });
 
 async function startServer() {

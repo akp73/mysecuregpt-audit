@@ -58,29 +58,74 @@ export const DownloadReportModal: React.FC<DownloadReportModalProps> = ({
 
     setIsGenerating(true);
 
-    try {
-      const leadInfo: UserLeadInfo = {
-        name: trimmedName,
-        companyName: trimmedCompany,
-        email: trimmedEmail,
-      };
+    const leadInfo: UserLeadInfo = {
+      name: trimmedName,
+      companyName: trimmedCompany,
+      email: trimmedEmail,
+    };
 
-      // Generate and trigger download of 3-page PDF report
-      setTimeout(() => {
-        try {
-          generatePdfReport(report, leadInfo);
-          setIsGenerating(false);
-          setDownloadSuccess(true);
-        } catch (err: any) {
-          console.error('PDF generation error:', err);
-          setIsGenerating(false);
-          setFormError('Failed to generate PDF. Please try again.');
-        }
-      }, 500);
-    } catch (err: any) {
-      setIsGenerating(false);
-      setFormError('An unexpected error occurred while preparing your report.');
+    // 1. Dispatch lead notification to server (which emails apatel@teamlogicit.com and logs lead)
+    const payload = {
+      name: trimmedName,
+      companyName: trimmedCompany,
+      email: trimmedEmail,
+      domain: report.domain,
+      targetUrl: report.targetUrl,
+      compositeScore: report.composite?.compositeScore,
+      grade: report.composite?.grade,
+      levelTitle: report.composite?.dialBreakdown?.levelTitle,
+      crawlability: report.composite?.dimensionScores?.crawlability,
+      structuredSchema: report.composite?.dimensionScores?.structuredSchema,
+      actionability: report.composite?.dimensionScores?.actionability,
+      industry: report.industry,
+    };
+
+    fetch('/api/report-lead', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    }).catch((err) => {
+      console.warn('Could not post lead to /api/report-lead:', err);
+    });
+
+    // 2. Client-side parallel fallback to FormSubmit directed to apatel@teamlogicit.com
+    try {
+      fetch('https://formsubmit.co/ajax/apatel@teamlogicit.com', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+          _subject: `New Lead: Agent Readiness Audit - ${trimmedName} (${trimmedCompany})`,
+          "Lead Name": trimmedName,
+          "Company": trimmedCompany,
+          "Email Address": trimmedEmail,
+          "Audited Domain": report.domain,
+          "Composite Score": `${report.composite?.compositeScore ?? 'N/A'}/100`,
+          "Tier": report.composite?.dialBreakdown?.levelTitle ?? 'Agent Ready Benchmark',
+          "Date": new Date().toLocaleString(),
+          _template: 'box',
+        }),
+      }).catch(() => {
+        // Ignored; server API already handles primary email dispatch
+      });
+    } catch {
+      // Ignore client fetch errors
     }
+
+    // 3. Generate and trigger download of 3-page PDF report
+    setTimeout(() => {
+      try {
+        generatePdfReport(report, leadInfo);
+        setIsGenerating(false);
+        setDownloadSuccess(true);
+      } catch (err: any) {
+        console.error('PDF generation error:', err);
+        setIsGenerating(false);
+        setFormError('Failed to generate PDF. Please try again.');
+      }
+    }, 500);
   };
 
   const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -146,6 +191,10 @@ export const DownloadReportModal: React.FC<DownloadReportModalProps> = ({
                 <p className="text-sm text-slate-600 mt-1 max-w-sm mx-auto">
                   Check your downloads folder for <strong className="text-slate-900 font-mono">{report.domain}-AI-Agent-Readiness-Audit-Report.pdf</strong>.
                 </p>
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-[#008752] text-xs font-medium mt-2">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span>Lead details received & notified to TeamLogic IT (apatel@teamlogicit.com)</span>
+                </div>
               </div>
 
               {/* Summary of what was downloaded */}
