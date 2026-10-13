@@ -360,8 +360,13 @@ export const ScoreGaugeDial: React.FC<ScoreGaugeDialProps> = ({
             </span>
           </div>
 
+          {/* AI Agent says prefix line with same font, size, and thickness as level text */}
+          <div className="text-2xl sm:text-3xl font-black text-slate-900 mt-2 tracking-tight">
+            AI Agent says:
+          </div>
+
           {/* Descriptive Tier Title */}
-          <h3 className="text-2xl sm:text-3xl font-black text-slate-900 mt-2 tracking-tight">
+          <h3 className="text-2xl sm:text-3xl font-black text-slate-900 mt-0.5 tracking-tight">
             {levelTitle}
           </h3>
           <p className="text-base sm:text-lg font-bold text-slate-700 mt-1 tracking-tight">
