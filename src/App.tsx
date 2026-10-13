@@ -158,11 +158,11 @@ export default function App() {
             </div>
 
             {/* Audit Input Form */}
-            <form onSubmit={handleAuditSubmit} className="mt-6 flex flex-col sm:flex-row sm:items-end gap-3">
+            <form onSubmit={handleAuditSubmit} className="mt-6 flex flex-col sm:flex-row sm:items-end gap-3.5">
               <div className="flex-1">
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                    <Globe className="w-4 h-4 text-[#008752]" />
+                  <div className="absolute inset-y-0 left-0 pl-4 sm:pl-5 flex items-center pointer-events-none text-slate-400">
+                    <Globe className="w-5 h-5 sm:w-6 sm:h-6 text-[#008752]" />
                   </div>
                   <input
                     type="text"
@@ -170,19 +170,19 @@ export default function App() {
                     onChange={(e) => setUrlInput(e.target.value)}
                     placeholder="Enter your Website Here"
                     required
-                    className="w-full bg-slate-50 border border-slate-300 rounded-xl pl-10 pr-4 py-3 text-sm font-mono text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#008752] focus:ring-1 focus:ring-[#008752] transition-colors shadow-2xs"
+                    className="w-full bg-slate-50 border-2 border-slate-300 rounded-xl sm:rounded-2xl pl-12 sm:pl-14 pr-5 py-3.5 sm:py-4 text-base sm:text-lg md:text-xl font-medium text-slate-900 placeholder:text-slate-400 placeholder:text-base sm:placeholder:text-lg md:placeholder:text-xl focus:outline-none focus:border-[#008752] focus:ring-2 focus:ring-[#008752]/20 transition-all shadow-xs"
                   />
                 </div>
               </div>
 
-              <div className="sm:w-64">
-                <label className="block text-xs font-semibold text-slate-800 mb-1.5">
+              <div className="sm:w-72">
+                <label className="block text-xs sm:text-sm font-bold text-slate-800 mb-1.5">
                   Select Your Industry
                 </label>
                 <select
                   value={industry}
                   onChange={(e) => setIndustry(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-3 text-sm text-slate-800 font-medium focus:outline-none focus:border-[#008752] focus:ring-1 focus:ring-[#008752] cursor-pointer shadow-2xs"
+                  className="w-full bg-slate-50 border-2 border-slate-300 rounded-xl sm:rounded-2xl px-4 py-3.5 sm:py-4 text-sm sm:text-base text-slate-800 font-semibold focus:outline-none focus:border-[#008752] focus:ring-2 focus:ring-[#008752]/20 cursor-pointer shadow-xs"
                 >
                   {industries.map((ind) => (
                     <option key={ind.id} value={ind.id}>
@@ -195,16 +195,16 @@ export default function App() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="bg-[#008752] hover:bg-[#007043] text-white font-bold px-6 py-3 rounded-xl transition-all flex items-center justify-center gap-2 shadow-sm hover:shadow disabled:opacity-50 cursor-pointer text-sm shrink-0"
+                className="bg-[#008752] hover:bg-[#007043] text-white font-extrabold px-7 sm:px-8 py-3.5 sm:py-4 rounded-xl sm:rounded-2xl transition-all flex items-center justify-center gap-2.5 shadow-sm hover:shadow-md disabled:opacity-50 cursor-pointer text-base sm:text-lg shrink-0"
               >
                 {isLoading ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <Loader2 className="w-5 h-5 animate-spin" />
                     <span>Analyzing Site...</span>
                   </>
                 ) : (
                   <>
-                    <Search className="w-4 h-4" />
+                    <Search className="w-5 h-5" />
                     <span>Audit Website</span>
                   </>
                 )}
