@@ -1,0 +1,6 @@
+{
+  "name": "AgentReady - AI Agent Readiness Auditor & Benchmark",
+  "description": "Comprehensive audit tool to check if websites are ready for AI agents. Analyzes robots.txt permissions, scans structured JSON-LD schemas, calculates composite scores across Ora.ai, IsItAgentReady, and WebYes methodologies, highlights agent failure capabilities and missing data, and benchmarks against industry peers.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
