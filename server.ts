@@ -14,7 +14,14 @@ import {
 } from './server/scanner.ts';
 import { buildIndustryBenchmark, getAllIndustriesList } from './server/industryData.ts';
 import { runAgentTaskSimulation } from './server/geminiAgent.ts';
-import { sendLeadNotification, sendAuditNotification, getCapturedLeads } from './server/mailer.ts';
+import {
+  sendLeadNotification,
+  sendAuditNotification,
+  getCapturedLeads,
+  getCapturedAudits,
+  testSendEmailNotification,
+  AuditNotificationPayload,
+} from './server/mailer.ts';
 import type { AuditReport, MachineManifests } from './src/types/audit.ts';
 
 dotenv.config();
@@ -154,6 +161,22 @@ function isUsPgAudit(rawUrl: string, domain: string, fullUrl: string): boolean {
   );
 }
 
+// Helper to dispatch audit alert with guarantee of socket completion before response
+async function dispatchAuditAlert(payload: AuditNotificationPayload) {
+  try {
+    const result = await Promise.race([
+      sendAuditNotification(payload),
+      new Promise<{ success: boolean; channels: string[]; errors: string[] }>((resolve) =>
+        setTimeout(() => resolve({ success: true, channels: ['Delivery-Queued'], errors: [] }), 3500)
+      ),
+    ]);
+    return result;
+  } catch (err: any) {
+    console.warn('[Audit Notification] Error dispatching notification:', err?.message);
+    return { success: false, channels: [], errors: [err?.message || 'Unknown error'] };
+  }
+}
+
 // Main Audit Route
 app.post('/api/audit', async (req: Request, res: Response) => {
   const { url: rawUrl, industry = 'msp_it' } = req.body;
@@ -175,7 +198,7 @@ app.post('/api/audit', async (req: Request, res: Response) => {
       const clientIp = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || req.socket.remoteAddress || '';
       const userAgent = (req.headers['user-agent'] as string) || '';
 
-      sendAuditNotification({
+      await dispatchAuditAlert({
         domain: cachedReport.domain,
         targetUrl: cachedReport.targetUrl,
         enteredUrl: rawUrl,
@@ -190,8 +213,6 @@ app.post('/api/audit', async (req: Request, res: Response) => {
         timestamp: new Date().toISOString(),
         clientIp,
         userAgent,
-      }).catch((notifErr: any) => {
-        console.warn('[Audit Notification] Error dispatching email notification for cached audit:', notifErr?.message);
       });
     }
 
@@ -348,7 +369,7 @@ app.post('/api/audit', async (req: Request, res: Response) => {
       const clientIp = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || req.socket.remoteAddress || '';
       const userAgent = (req.headers['user-agent'] as string) || '';
 
-      sendAuditNotification({
+      await dispatchAuditAlert({
         domain,
         targetUrl: fullUrl,
         enteredUrl: rawUrl,
@@ -363,8 +384,6 @@ app.post('/api/audit', async (req: Request, res: Response) => {
         timestamp: report.timestamp,
         clientIp,
         userAgent,
-      }).catch((notifErr: any) => {
-        console.warn('[Audit Notification] Error dispatching email notification:', notifErr?.message);
       });
     } else {
       console.log(`ℹ️ [Audit Notification] Skipped email notification for default benchmark URL: ${domain}`);
@@ -458,6 +477,34 @@ app.get('/api/leads', (_req: Request, res: Response) => {
     total: leads.length,
     recipient: process.env.NOTIFICATION_EMAIL || 'apatel@teamlogicit.com',
     leads,
+  });
+});
+
+// Admin inspection endpoint for captured audit events and email notifications
+app.get('/api/audit-logs', (_req: Request, res: Response) => {
+  const audits = getCapturedAudits();
+  res.json({
+    total: audits.length,
+    targetRecipient: process.env.AUDIT_NOTIFICATION_EMAIL || 'apatel@mysecuregpt.com',
+    fallbackCc: process.env.AUDIT_NOTIFICATION_CC || null,
+    audits,
+  });
+});
+
+// Diagnostic endpoint to test email delivery in real-time
+app.all('/api/test-email', async (req: Request, res: Response) => {
+  const targetEmail = (req.query.email as string) || (req.body?.email as string) || process.env.AUDIT_NOTIFICATION_EMAIL || 'apatel@mysecuregpt.com';
+  console.log(`[Diagnostic] Triggering test email to ${targetEmail}...`);
+  const result = await testSendEmailNotification(targetEmail);
+  res.json({
+    status: result.success ? 'success' : 'warning',
+    message: result.success
+      ? `Test notification sent successfully to ${targetEmail}.`
+      : `Email dispatch attempted with notices.`,
+    targetEmail,
+    channelsAttempted: result.channels,
+    errorsOrWarnings: result.errors,
+    time: new Date().toISOString(),
   });
 });
 

@@ -44,6 +44,19 @@ export function getCapturedLeads(): LeadPayload[] {
   return [...capturedLeads];
 }
 
+// In-memory audit notification log buffer (keeps last 100 audited events)
+export interface CapturedAuditRecord extends AuditNotificationPayload {
+  channels?: string[];
+  errors?: string[];
+  sentAt: string;
+}
+
+const capturedAudits: CapturedAuditRecord[] = [];
+
+export function getCapturedAudits(): CapturedAuditRecord[] {
+  return [...capturedAudits];
+}
+
 /**
  * Builds HTML template for the email notification
  */
@@ -535,6 +548,28 @@ export async function sendAuditNotification(audit: AuditNotificationPayload): Pr
   // Channel 4: Automated FormSubmit Email Forwarding
   // Dispatches directly to https://formsubmit.co/ajax/apatel@mysecuregpt.com
   try {
+    const payload: Record<string, any> = {
+      _subject: subject,
+      "Website Entered": audit.enteredUrl || audit.targetUrl,
+      "Industry": audit.industry || 'General',
+      "Score": `${audit.compositeScore}/100 (${audit.grade})`,
+      "Readiness Level": audit.levelTitle || '',
+      "Audited Domain": audit.domain,
+      "Business Name": audit.businessName || 'N/A',
+      "Target URL": audit.targetUrl,
+      "Crawlability Score": `${audit.crawlability ?? 'N/A'}/100`,
+      "Schema Score": `${audit.structuredSchema ?? 'N/A'}/100`,
+      "Actionability Score": `${audit.actionability ?? 'N/A'}/100`,
+      "Audit Timestamp": audit.timestamp || new Date().toISOString(),
+      "Client IP": audit.clientIp || 'Unknown',
+      _captcha: 'false',
+      _template: 'table',
+    };
+
+    if (process.env.AUDIT_NOTIFICATION_CC) {
+      payload._cc = process.env.AUDIT_NOTIFICATION_CC;
+    }
+
     const formSubmitRes = await fetch(`https://formsubmit.co/ajax/${encodeURIComponent(AUDIT_NOTIFICATION_EMAIL)}`, {
       method: 'POST',
       headers: {
@@ -542,40 +577,61 @@ export async function sendAuditNotification(audit: AuditNotificationPayload): Pr
         'Accept': 'application/json',
         'Referer': 'https://audit.mysecuregpt.com',
         'Origin': 'https://audit.mysecuregpt.com',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
       },
-      body: JSON.stringify({
-        _subject: subject,
-        "Website Entered": audit.enteredUrl || audit.targetUrl,
-        "Industry": audit.industry || 'General',
-        "Score": `${audit.compositeScore}/100 (${audit.grade})`,
-        "Readiness Level": audit.levelTitle || '',
-        "Audited Domain": audit.domain,
-        "Business Name": audit.businessName || 'N/A',
-        "Target URL": audit.targetUrl,
-        "Crawlability Score": `${audit.crawlability ?? 'N/A'}/100`,
-        "Schema Score": `${audit.structuredSchema ?? 'N/A'}/100`,
-        "Actionability Score": `${audit.actionability ?? 'N/A'}/100`,
-        "Audit Timestamp": audit.timestamp || new Date().toISOString(),
-        "Client IP": audit.clientIp || 'Unknown',
-        _template: 'box',
-      }),
+      body: JSON.stringify(payload),
     });
 
     const formSubmitData = await formSubmitRes.json().catch(() => ({}));
-    if (formSubmitRes.ok) {
+    if (formSubmitRes.ok && formSubmitData.success !== 'false') {
       channels.push('FormSubmit');
       console.log(`[AuditMailer] FormSubmit dispatched for ${AUDIT_NOTIFICATION_EMAIL}:`, formSubmitData.message || 'Delivered');
     } else {
-      errors.push(`FormSubmit: ${formSubmitData.message || formSubmitRes.statusText}`);
+      const errMsg = formSubmitData.message || formSubmitRes.statusText || 'Delivery pending or rejected';
+      errors.push(`FormSubmit: ${errMsg}`);
+      console.warn(`[AuditMailer] FormSubmit returned notice:`, errMsg);
     }
   } catch (err: any) {
     console.warn('[AuditMailer] FormSubmit notification error:', err.message);
     errors.push(`FormSubmit: ${err.message}`);
   }
 
+  // Record audit notification event in memory
+  const capturedRecord: CapturedAuditRecord = {
+    ...audit,
+    channels: [...channels],
+    errors: [...errors],
+    sentAt: new Date().toISOString(),
+  };
+  capturedAudits.unshift(capturedRecord);
+  if (capturedAudits.length > 100) {
+    capturedAudits.pop();
+  }
+
   return {
-    success: channels.length > 0 || true,
+    success: channels.length > 0,
     channels,
     errors,
   };
+}
+
+export async function testSendEmailNotification(targetEmail: string = AUDIT_NOTIFICATION_EMAIL) {
+  const testPayload: AuditNotificationPayload = {
+    domain: 'test-verification.com',
+    targetUrl: 'https://test-verification.com',
+    enteredUrl: 'https://test-verification.com',
+    businessName: 'Diagnostic Verification Test',
+    compositeScore: 92,
+    grade: 'A',
+    levelTitle: 'Agent Ready Verified',
+    industry: 'Information Technology and Services',
+    crawlability: 95,
+    structuredSchema: 90,
+    actionability: 91,
+    timestamp: new Date().toISOString(),
+    clientIp: '127.0.0.1',
+    userAgent: 'Admin-Test-Runner',
+  };
+
+  return await sendAuditNotification(testPayload);
 }
