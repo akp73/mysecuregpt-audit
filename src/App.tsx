@@ -13,6 +13,7 @@ import {
   Phone,
   MapPin,
   Sparkles,
+  Globe,
 } from 'lucide-react';
 import { Header } from './components/Header';
 import { ScoreHero } from './components/ScoreHero';
@@ -28,8 +29,8 @@ import { AuditReport } from './types/audit';
 import { INITIAL_INDUSTRY_OPTIONS } from './constants/industries';
 
 export default function App() {
-  const [urlInput, setUrlInput] = useState('teamlogicit.com');
-  const [industry, setIndustry] = useState('information_technology_and_services');
+  const [urlInput, setUrlInput] = useState('https://us.pg.com/');
+  const [industry, setIndustry] = useState('consumer_goods');
   const [industries, setIndustries] = useState<
     { id: string; name: string; defaultMedian: number; top10: number }[]
   >(INITIAL_INDUSTRY_OPTIONS);
@@ -54,9 +55,9 @@ export default function App() {
       .catch((err) => console.warn('Could not load industries from API:', err));
   }, []);
 
-  // Initial audit of default url (teamlogicit.com)
+  // Initial audit of default url (https://us.pg.com/)
   useEffect(() => {
-    runAudit('teamlogicit.com', 'information_technology_and_services');
+    runAudit('https://us.pg.com/', 'consumer_goods');
   }, []);
 
   const runAudit = async (targetUrl: string, targetIndustry: string) => {
@@ -123,16 +124,16 @@ export default function App() {
             <form onSubmit={handleAuditSubmit} className="mt-6 flex flex-col sm:flex-row sm:items-end gap-3">
               <div className="flex-1">
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 font-mono text-xs">
-                    https://
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                    <Globe className="w-4 h-4 text-[#008752]" />
                   </div>
                   <input
                     type="text"
                     value={urlInput}
                     onChange={(e) => setUrlInput(e.target.value)}
-                    placeholder="teamlogicit.com or yourcompany.com"
+                    placeholder="https://us.pg.com/ or yourcompany.com"
                     required
-                    className="w-full bg-slate-50 border border-slate-300 rounded-xl pl-20 pr-4 py-3 text-sm font-mono text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#008752] focus:ring-1 focus:ring-[#008752] transition-colors shadow-2xs"
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl pl-10 pr-4 py-3 text-sm font-mono text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#008752] focus:ring-1 focus:ring-[#008752] transition-colors shadow-2xs"
                   />
                 </div>
               </div>

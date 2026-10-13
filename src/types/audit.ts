@@ -226,6 +226,7 @@ export interface RemediationSnippets {
 export interface AuditReport {
   targetUrl: string;
   domain: string;
+  businessName?: string;
   industry: string;
   timestamp: string;
   composite: CompositeScoreBreakdown;

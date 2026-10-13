@@ -43,12 +43,13 @@ export function generatePdfReport(report: AuditReport, lead: UserLeadInfo): void
     report.composite.compositeScore >= 30 ? 2 : 1
   );
 
-  const levelTitle = report.composite.dialBreakdown?.levelTitle || (
+  const rawLevelText = report.composite.dialBreakdown?.levelTitle || (
     level === 5 ? 'All system go.' :
     level === 4 ? "Can't buy without human." :
     level === 3 ? "Can't buy or book a meeting." :
     level === 2 ? "Can't find products or services." : "Business doesn't exist."
   );
+  const levelTitle = rawLevelText.replace(/^AI Agent [sS]ays:\s*/i, '').trim();
 
   const scoreTheme = report.composite.compositeScore >= 80
     ? primaryGreen
@@ -132,14 +133,15 @@ export function generatePdfReport(report: AuditReport, lead: UserLeadInfo): void
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(8);
   doc.setTextColor(...slate700);
-  doc.text('AUDITED DOMAIN:', marginX + 4, 35);
+  doc.text('AUDITED TARGET:', marginX + 4, 35);
   doc.text('PREPARED FOR:', marginX + 65, 35);
   doc.text('COMPANY / ORG:', marginX + 125, 35);
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8.5);
   doc.setTextColor(...darkNavy);
-  doc.text(report.domain, marginX + 4, 41);
+  const targetLabel = report.businessName ? `${report.businessName} (${report.domain})` : report.domain;
+  doc.text(targetLabel, marginX + 4, 41);
   doc.text(`${lead.name} (${lead.email})`, marginX + 65, 41);
   doc.text(lead.companyName, marginX + 125, 41);
 
@@ -171,16 +173,21 @@ export function generatePdfReport(report: AuditReport, lead: UserLeadInfo): void
   doc.setTextColor(255, 255, 255);
   doc.text(`LEVEL ${level}`, marginX + 28, 78.2, { align: 'center' });
 
-  // Tier Title & Verdict
+  // AI Agent Says: Line & Tier Title & Verdict
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.setTextColor(...slate700);
+  doc.text('AI Agent Says:', marginX + 50, 56);
+
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(13);
   doc.setTextColor(...darkNavy);
-  doc.text(levelTitle, marginX + 50, 58);
+  doc.text(levelTitle, marginX + 50, 62);
 
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(8.5);
   doc.setTextColor(...primaryGreen);
-  doc.text(`VERDICT: ${report.composite.overallVerdict.toUpperCase()}`, marginX + 50, 64);
+  doc.text(`VERDICT: ${report.composite.overallVerdict.toUpperCase()}`, marginX + 50, 68);
 
   // Executive summary text
   doc.setFont('helvetica', 'normal');

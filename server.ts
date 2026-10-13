@@ -83,6 +83,12 @@ app.get('/api/presets', (_req: Request, res: Response) => {
   res.json({
     presets: [
       {
+        name: 'Procter & Gamble (P&G)',
+        url: 'https://us.pg.com/',
+        industry: 'consumer_goods',
+        description: 'Global consumer goods leader with structured schema & enterprise agent readiness.',
+      },
+      {
         name: 'TeamLogic IT',
         url: 'teamlogicit.com',
         industry: 'information_technology_and_services',
@@ -212,7 +218,36 @@ app.post('/api/audit', async (req: Request, res: Response) => {
       hasPricingInSchema
     );
 
-    // 8. Build Industry Benchmarks & Rank
+    // 8. Extract actual name of the business
+    const orgSchema = schema.items.find(
+      (i) =>
+        ['Organization', 'Corporation', 'LocalBusiness', 'MedicalBusiness', 'Brand', 'WebSite'].includes(i.type) &&
+        i.name
+    );
+    let businessName = orgSchema?.name ? String(orgSchema.name).trim() : '';
+
+    if (!businessName && htmlMeta.title) {
+      businessName = htmlMeta.title.split(/[|•–—]/)[0].trim();
+      businessName = businessName.replace(/\s*-\s*(Home|Official Site|Official Website|Welcome|Overview).*$/i, '').trim();
+    }
+
+    if (!businessName || businessName.length < 2) {
+      if (domain.includes('pg.com')) businessName = 'Procter & Gamble';
+      else if (domain.includes('teamlogicit.com')) businessName = 'TeamLogic IT';
+      else if (domain.includes('ora.ai')) businessName = 'Ora.ai';
+      else if (domain.includes('webyes.com')) businessName = 'WebYes';
+      else if (domain.includes('stripe.com')) businessName = 'Stripe';
+      else if (domain.includes('warbyparker.com')) businessName = 'Warby Parker';
+      else if (domain.includes('zocdoc.com')) businessName = 'Zocdoc';
+      else {
+        businessName = domain.replace(/^www\./, '').split('.')[0]
+          .split(/[-_]/)
+          .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+          .join(' ');
+      }
+    }
+
+    // 9. Build Industry Benchmarks & Rank
     const benchmark = buildIndustryBenchmark(
       industry,
       composite.compositeScore,
@@ -220,13 +255,13 @@ app.post('/api/audit', async (req: Request, res: Response) => {
       composite.dimensionScores.structuredSchema,
       composite.dimensionScores.actionability,
       domain,
-      htmlMeta.title ? htmlMeta.title.split(/[-|]/)[0].trim() : domain
+      businessName
     );
 
-    // 9. Generate 1-Click Remediation Snippets (llms.txt, robots.txt, schema.org)
+    // 10. Generate 1-Click Remediation Snippets (llms.txt, robots.txt, schema.org)
     const remediation = generateRemediationCode(
       domain,
-      htmlMeta.title ? htmlMeta.title.split(/[-|]/)[0].trim() : domain,
+      businessName,
       schema,
       robotsAnalysis
     );
@@ -234,6 +269,7 @@ app.post('/api/audit', async (req: Request, res: Response) => {
     const report: AuditReport = {
       targetUrl: fullUrl,
       domain,
+      businessName,
       industry: benchmark.industryName,
       timestamp: new Date().toISOString(),
       composite,

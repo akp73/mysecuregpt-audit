@@ -45,6 +45,7 @@ export const ScoreHero: React.FC<ScoreHeroProps> = ({ report }) => {
         <ScoreGaugeDial
           score={composite.compositeScore}
           domain={domain}
+          businessName={report.businessName}
           dialBreakdown={composite.dialBreakdown}
           questionsBreakdown={composite.questionsBreakdown}
           tools={composite.tools}
@@ -62,7 +63,12 @@ export const ScoreHero: React.FC<ScoreHeroProps> = ({ report }) => {
             <div>
               <div className="flex items-center gap-2">
                 <Globe className="w-5 h-5 text-[#008752]" />
-                <h2 className="text-xl sm:text-2xl font-bold text-slate-900 font-mono tracking-tight">{domain}</h2>
+                <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight flex items-baseline gap-2">
+                  <span>{report.businessName || domain}</span>
+                  {report.businessName && (
+                    <span className="text-sm font-mono text-slate-400 font-normal">({domain})</span>
+                  )}
+                </h2>
                 {wafOrBotShieldDetected && (
                   <span className="text-xs font-mono text-amber-800 bg-amber-50 border border-amber-300 px-2 py-0.5 rounded flex items-center gap-1 font-medium">
                     <ShieldAlert className="w-3.5 h-3.5 text-amber-600" />

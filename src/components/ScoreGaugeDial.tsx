@@ -26,6 +26,7 @@ import {
 interface ScoreGaugeDialProps {
   score: number;
   domain: string;
+  businessName?: string;
   dialBreakdown?: DialReadinessBreakdown;
   questionsBreakdown?: QuestionsBreakdown;
   tools?: AgentReadinessToolBenchmark[];
@@ -35,6 +36,7 @@ interface ScoreGaugeDialProps {
 export const ScoreGaugeDial: React.FC<ScoreGaugeDialProps> = ({
   score,
   domain,
+  businessName,
   dialBreakdown,
   questionsBreakdown,
   tools,
@@ -69,10 +71,22 @@ export const ScoreGaugeDial: React.FC<ScoreGaugeDialProps> = ({
     "Business doesn't exist.",
   ];
 
-  const levelTitle =
-    dialBreakdown?.levelTitle && validLevelTitles.includes(dialBreakdown.levelTitle)
-      ? dialBreakdown.levelTitle
-      : getLevelTitle(level, score);
+  const rawLevelTitle = dialBreakdown?.levelTitle
+    ? dialBreakdown.levelTitle.replace(/^AI Agent [sS]ays:\s*/i, '').trim()
+    : getLevelTitle(level, score);
+
+  const cleanLevelTitle = validLevelTitles.includes(rawLevelTitle)
+    ? rawLevelTitle
+    : getLevelTitle(level, score);
+
+  const displayName = businessName || (
+    domain.includes('pg.com') ? 'Procter & Gamble' :
+    domain.includes('teamlogicit.com') ? 'TeamLogic IT' :
+    domain.replace(/^www\./, '').split('.')[0]
+      .split(/[-_]/)
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(' ')
+  );
 
   // Determine color based on score (matching TeamLogic IT palette)
   const getScoreColor = (val: number) => {
@@ -266,13 +280,18 @@ export const ScoreGaugeDial: React.FC<ScoreGaugeDialProps> = ({
 
   return (
     <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-6 sm:p-8 space-y-8">
-      {/* View Switcher Controls */}
-      <div className="flex items-center justify-between pb-2">
-        <div className="text-xs text-slate-400 font-mono">
-          Audited target: <span className="text-slate-700 font-semibold">{domain}</span>
+      {/* View Switcher Controls & Large Audited Target Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200">
+        <div className="flex flex-wrap items-baseline gap-2.5">
+          <span className="text-base sm:text-lg md:text-xl font-bold text-slate-500">
+            Audited Target:
+          </span>
+          <span className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 tracking-tight">
+            {displayName}
+          </span>
         </div>
 
-        <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg border border-slate-200">
+        <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg border border-slate-200 shrink-0 self-start sm:self-auto">
           <button
             onClick={() => setViewMode('dials')}
             className={`px-2.5 py-1 text-xs font-semibold rounded-md transition-colors flex items-center gap-1.5 cursor-pointer ${
@@ -360,14 +379,14 @@ export const ScoreGaugeDial: React.FC<ScoreGaugeDialProps> = ({
             </span>
           </div>
 
-          {/* AI Agent says prefix line with same font, size, and thickness as level text */}
+          {/* AI Agent Says: prefix line with same font, size, and thickness as level text */}
           <div className="text-2xl sm:text-3xl font-black text-slate-900 mt-2 tracking-tight">
-            AI Agent says:
+            AI Agent Says:
           </div>
 
-          {/* Descriptive Tier Title */}
+          {/* Descriptive Tier Title (One of the 5 Levels) */}
           <h3 className="text-2xl sm:text-3xl font-black text-slate-900 mt-0.5 tracking-tight">
-            {levelTitle}
+            {cleanLevelTitle}
           </h3>
           <p className="text-base sm:text-lg font-bold text-slate-700 mt-1 tracking-tight">
             Composite Score
