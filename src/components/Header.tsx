@@ -44,20 +44,11 @@ export const Header: React.FC<HeaderProps> = () => {
           </a>
         </div>
 
-        {/* Right Side Advisor Call & Auditor Title */}
-        <div className="flex items-center gap-3">
-          <div className="text-right hidden sm:block">
-            <div className="text-xs font-bold text-slate-800">AI Agent Readiness Evaluator</div>
-            <div className="text-[11px] text-slate-500">7-Tool Autonomous Benchmark Suite</div>
-          </div>
-          <a
-            href="tel:5134459002"
-            className="bg-[#008752] hover:bg-[#007043] text-white text-xs font-bold px-3.5 py-2 rounded-lg transition-colors flex items-center gap-1.5 shadow-2xs"
-          >
-            <Phone className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Schedule Advisor Call</span>
-            <span className="sm:hidden">Call</span>
-          </a>
+        {/* Right Side Brand Text matching headline font size */}
+        <div className="text-right flex items-center">
+          <span className="text-xl sm:text-2xl md:text-3xl lg:text-[2.15rem] xl:text-[2.35rem] font-extrabold text-black tracking-tight leading-tight font-inter sm:whitespace-nowrap">
+            TeamLogic IT - Your IT Partner
+          </span>
         </div>
       </div>
 
