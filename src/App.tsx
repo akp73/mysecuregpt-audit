@@ -195,7 +195,7 @@ export default function App() {
           <div className="p-6 sm:p-8 bg-white">
             <div className="w-full">
               <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-[2.15rem] xl:text-[2.35rem] font-extrabold text-black tracking-tight leading-tight font-inter sm:whitespace-nowrap">
-                Can Your Website Turn AI Searches Into Leads?
+                Want to Turn AI Searches Into Leads?
               </h1>
             </div>
 
