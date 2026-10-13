@@ -174,7 +174,7 @@ export default function App() {
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         {/* TeamLogic IT Hero Search Section */}
         <section className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-          <div className="p-6 sm:p-8 bg-gradient-to-br from-white via-emerald-50/20 to-slate-50">
+          <div className="p-6 sm:p-8 bg-white">
             <div className="w-full">
               <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-[2.15rem] xl:text-[2.35rem] font-extrabold text-black tracking-tight leading-tight font-inter sm:whitespace-nowrap">
                 Can Your Website Turn AI Searches Into Leads?
@@ -194,7 +194,7 @@ export default function App() {
                     onChange={(e) => setUrlInput(e.target.value)}
                     placeholder="Enter your Website Here"
                     required
-                    className="w-full bg-slate-50 border-2 border-slate-300 rounded-xl sm:rounded-2xl pl-12 sm:pl-14 pr-5 py-3.5 sm:py-4 text-base sm:text-lg md:text-xl font-medium text-slate-900 placeholder:text-slate-400 placeholder:text-base sm:placeholder:text-lg md:placeholder:text-xl focus:outline-none focus:border-[#008752] focus:ring-2 focus:ring-[#008752]/20 transition-all shadow-xs"
+                    className="w-full bg-slate-50/50 border-2 border-slate-300 rounded-xl sm:rounded-2xl pl-12 sm:pl-14 pr-5 py-3.5 sm:py-4 text-base sm:text-lg md:text-xl font-medium text-slate-900 placeholder:text-slate-400 placeholder:text-base sm:placeholder:text-lg md:placeholder:text-xl focus:outline-none focus:border-[#008752] focus:ring-2 focus:ring-[#008752]/20 transition-all shadow-xs"
                   />
                 </div>
               </div>
@@ -206,7 +206,7 @@ export default function App() {
                 <select
                   value={industry}
                   onChange={(e) => setIndustry(e.target.value)}
-                  className="w-full bg-slate-50 border-2 border-slate-300 rounded-xl sm:rounded-2xl px-4 py-3.5 sm:py-4 text-sm sm:text-base text-slate-800 font-semibold focus:outline-none focus:border-[#008752] focus:ring-2 focus:ring-[#008752]/20 cursor-pointer shadow-xs"
+                  className="w-full bg-slate-50/50 border-2 border-slate-300 rounded-xl sm:rounded-2xl px-4 py-3.5 sm:py-4 text-sm sm:text-base text-slate-800 font-semibold focus:outline-none focus:border-[#008752] focus:ring-2 focus:ring-[#008752]/20 cursor-pointer shadow-xs"
                 >
                   {industries.map((ind) => (
                     <option key={ind.id} value={ind.id}>
@@ -235,7 +235,10 @@ export default function App() {
               </button>
             </form>
 
-
+            {/* Subtext below the form as shown in attachment */}
+            <div className="mt-6 text-base sm:text-lg md:text-xl text-slate-800 font-normal tracking-tight">
+              See below what Buyer&apos;s AI Agent on your site...
+            </div>
 
             {/* Error Message */}
             {error && (
@@ -245,7 +248,7 @@ export default function App() {
               </div>
             )}
           </div>
-          <TeamLogicBrandBar className="h-1" />
+          <TeamLogicBrandBar className="h-1.5" />
         </section>
 
         {/* Live Multi-Tool Data Gathering Progress (0 to 100) */}
