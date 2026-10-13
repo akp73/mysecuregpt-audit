@@ -20,6 +20,7 @@ export interface LeadPayload {
 export interface AuditNotificationPayload {
   domain: string;
   targetUrl: string;
+  enteredUrl?: string;
   businessName?: string;
   compositeScore: number;
   grade: string;
@@ -313,6 +314,7 @@ function buildAuditEmailHtml(audit: AuditNotificationPayload): string {
   const scoreDisplay = `${audit.compositeScore}/100`;
   const gradeDisplay = audit.grade ? `(${audit.grade})` : '';
   const domainDisplay = audit.domain;
+  const enteredWebsite = audit.enteredUrl || audit.targetUrl;
   const businessDisplay = audit.businessName ? `${audit.businessName} (${audit.domain})` : audit.domain;
   const timestampDisplay = audit.timestamp || new Date().toUTCString();
 
@@ -324,7 +326,7 @@ function buildAuditEmailHtml(audit: AuditNotificationPayload): string {
   <title>New Website Audited: ${domainDisplay}</title>
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f1f5f9; margin: 0; padding: 24px; color: #1e293b; }
-    .card { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+    .card { max-width: 620px; margin: 0 auto; background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
     .header { background: linear-gradient(135deg, #0A2540 0%, #008752 100%); padding: 24px 28px; color: #ffffff; }
     .badge { display: inline-block; background-color: #10b981; color: #ffffff; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; padding: 4px 8px; border-radius: 6px; margin-bottom: 8px; }
     .title { font-size: 20px; font-weight: 700; margin: 0; color: #ffffff; }
@@ -333,9 +335,9 @@ function buildAuditEmailHtml(audit: AuditNotificationPayload): string {
     .table td { padding: 12px 14px; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
     .table td.label { font-weight: 600; color: #64748b; width: 35%; background-color: #f8fafc; }
     .table td.value { color: #0f172a; font-weight: 500; }
-    .highlight { background-color: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 8px; padding: 14px 18px; margin-bottom: 20px; }
+    .highlight { background-color: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 8px; padding: 16px 20px; margin-bottom: 20px; }
     .highlight-title { font-size: 12px; font-weight: 700; color: #065f46; text-transform: uppercase; margin-bottom: 4px; }
-    .highlight-value { font-size: 18px; font-weight: 700; color: #047857; }
+    .highlight-value { font-size: 20px; font-weight: 800; color: #047857; }
     .btn { display: inline-block; background-color: #008752; color: #ffffff !important; text-decoration: none; font-weight: 600; font-size: 14px; padding: 12px 22px; border-radius: 8px; margin-right: 12px; }
     .footer { background-color: #f8fafc; border-top: 1px solid #e2e8f0; padding: 16px 28px; font-size: 12px; color: #94a3b8; text-align: center; }
   </style>
@@ -343,21 +345,35 @@ function buildAuditEmailHtml(audit: AuditNotificationPayload): string {
 <body>
   <div class="card">
     <div class="header">
-      <span class="badge">Live Audit Notification</span>
+      <span class="badge">Live Website Audit Alert</span>
       <h1 class="title">Website Audited: ${domainDisplay}</h1>
-      <p style="margin: 6px 0 0; color: #e2e8f0; font-size: 13px;">Someone just ran an AI Agent Readiness audit on ${businessDisplay}.</p>
+      <p style="margin: 6px 0 0; color: #e2e8f0; font-size: 13px;">A new website audit was just run on <strong>audit.mysecuregpt.com</strong>.</p>
     </div>
 
     <div class="content">
       <div class="highlight">
-        <div class="highlight-title">Audited Business & Score</div>
-        <div class="highlight-value">${businessDisplay} &bull; Score: ${scoreDisplay} ${gradeDisplay}</div>
-        <div style="font-size: 12px; color: #065f46; margin-top: 4px;">Classification: ${audit.levelTitle || 'Agent Ready Benchmark'}</div>
+        <div class="highlight-title">Audited Website & Score Summary</div>
+        <div class="highlight-value">${enteredWebsite} &bull; Score: ${scoreDisplay} ${gradeDisplay}</div>
+        <div style="font-size: 13px; color: #065f46; margin-top: 6px;">
+          Industry: <strong>${audit.industry || 'General'}</strong> &bull; Level: <strong>${audit.levelTitle || 'Benchmark'}</strong>
+        </div>
       </div>
 
       <table class="table">
         <tr>
-          <td class="label">Audited Domain</td>
+          <td class="label">Website Entered</td>
+          <td class="value"><strong style="color: #008752; font-size: 15px;">${enteredWebsite}</strong></td>
+        </tr>
+        <tr>
+          <td class="label">Industry</td>
+          <td class="value"><strong>${audit.industry || 'General'}</strong></td>
+        </tr>
+        <tr>
+          <td class="label">Audit Score</td>
+          <td class="value"><strong style="font-size: 16px; color: #047857;">${scoreDisplay} ${gradeDisplay}</strong> (${audit.levelTitle || 'Agent Ready Benchmark'})</td>
+        </tr>
+        <tr>
+          <td class="label">Resolved Domain</td>
           <td class="value"><strong>${audit.domain}</strong></td>
         </tr>
         <tr>
@@ -367,14 +383,6 @@ function buildAuditEmailHtml(audit: AuditNotificationPayload): string {
         <tr>
           <td class="label">Full Target URL</td>
           <td class="value"><a href="${audit.targetUrl}" target="_blank" style="color: #008752; font-weight: 600;">${audit.targetUrl}</a></td>
-        </tr>
-        <tr>
-          <td class="label">Readiness Score</td>
-          <td class="value"><strong>${scoreDisplay}</strong> ${gradeDisplay}</td>
-        </tr>
-        <tr>
-          <td class="label">Industry Benchmark</td>
-          <td class="value">${audit.industry || 'General'}</td>
         </tr>
         <tr>
           <td class="label">Dimension Scores</td>
@@ -390,14 +398,14 @@ function buildAuditEmailHtml(audit: AuditNotificationPayload): string {
         </tr>
         ${audit.clientIp ? `
         <tr>
-          <td class="label">Auditor IP</td>
+          <td class="label">Visitor IP</td>
           <td class="value" style="font-family: monospace; font-size: 12px;">${audit.clientIp}</td>
         </tr>` : ''}
       </table>
 
       <div style="margin-top: 24px; text-align: left;">
         <a href="${audit.targetUrl}" target="_blank" class="btn">
-          Visit Audited Website (${audit.domain})
+          Visit Audited Website
         </a>
       </div>
     </div>
@@ -423,16 +431,17 @@ export async function sendAuditNotification(audit: AuditNotificationPayload): Pr
   // Always log prominently to server console
   console.log('================================================================');
   console.log(`🌐 [AUDIT EVENT CAPTURED] -> Notification to ${AUDIT_NOTIFICATION_EMAIL}`);
-  console.log(`   Domain:    ${audit.domain} (${audit.businessName || 'N/A'})`);
-  console.log(`   URL:       ${audit.targetUrl}`);
-  console.log(`   Score:     ${audit.compositeScore}/100 (${audit.grade}) - ${audit.levelTitle || ''}`);
-  console.log(`   Industry:  ${audit.industry || 'N/A'}`);
-  console.log(`   Time:      ${audit.timestamp || new Date().toISOString()}`);
+  console.log(`   Website Entered: ${audit.enteredUrl || audit.targetUrl}`);
+  console.log(`   Domain:          ${audit.domain} (${audit.businessName || 'N/A'})`);
+  console.log(`   Industry:        ${audit.industry || 'N/A'}`);
+  console.log(`   Score:           ${audit.compositeScore}/100 (${audit.grade}) - ${audit.levelTitle || ''}`);
+  console.log(`   Time:            ${audit.timestamp || new Date().toISOString()}`);
   console.log('================================================================');
 
   const channels: string[] = [];
   const errors: string[] = [];
-  const subject = `Website Audited: ${audit.domain} (${audit.businessName || 'Business'}) - Score: ${audit.compositeScore}/100`;
+  const enteredWebsite = audit.enteredUrl || audit.domain;
+  const subject = `Website Audited: ${enteredWebsite} | Industry: ${audit.industry || 'General'} | Score: ${audit.compositeScore}/100 (${audit.grade})`;
   const htmlContent = buildAuditEmailHtml(audit);
 
   // Channel 1: SMTP via nodemailer (if SMTP_HOST, SMTP_USER are set)
@@ -535,16 +544,17 @@ export async function sendAuditNotification(audit: AuditNotificationPayload): Pr
         'Origin': 'https://audit.mysecuregpt.com',
       },
       body: JSON.stringify({
-        _subject: `Website Audited: ${audit.domain} (${audit.businessName || 'Business'}) - Score: ${audit.compositeScore}/100`,
+        _subject: subject,
+        "Website Entered": audit.enteredUrl || audit.targetUrl,
+        "Industry": audit.industry || 'General',
+        "Score": `${audit.compositeScore}/100 (${audit.grade})`,
+        "Readiness Level": audit.levelTitle || '',
         "Audited Domain": audit.domain,
         "Business Name": audit.businessName || 'N/A',
         "Target URL": audit.targetUrl,
-        "Composite Score": `${audit.compositeScore}/100 (${audit.grade})`,
-        "Readiness Rating": audit.levelTitle || '',
         "Crawlability Score": `${audit.crawlability ?? 'N/A'}/100`,
         "Schema Score": `${audit.structuredSchema ?? 'N/A'}/100`,
         "Actionability Score": `${audit.actionability ?? 'N/A'}/100`,
-        "Industry": audit.industry || 'General',
         "Audit Timestamp": audit.timestamp || new Date().toISOString(),
         "Client IP": audit.clientIp || 'Unknown',
         _template: 'box',

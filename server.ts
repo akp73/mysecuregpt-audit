@@ -137,6 +137,23 @@ app.get('/api/industries', (_req: Request, res: Response) => {
 // In-memory audit cache to avoid repeated crawling
 const serverAuditMemoryCache = new Map<string, AuditReport>();
 
+// Helper to determine if target URL is the default us.pg.com benchmark
+function isUsPgAudit(rawUrl: string, domain: string, fullUrl: string): boolean {
+  const normRaw = (rawUrl || '').toLowerCase().trim();
+  const normDomain = (domain || '').toLowerCase().trim();
+  const normFull = (fullUrl || '').toLowerCase().trim();
+
+  return (
+    normDomain === 'us.pg.com' ||
+    normDomain === 'pg.com' ||
+    normDomain.endsWith('.pg.com') ||
+    normRaw.includes('us.pg.com') ||
+    normRaw.includes('pg.com') ||
+    normFull.includes('us.pg.com') ||
+    normFull.includes('pg.com')
+  );
+}
+
 // Main Audit Route
 app.post('/api/audit', async (req: Request, res: Response) => {
   const { url: rawUrl, industry = 'msp_it' } = req.body;
@@ -151,7 +168,34 @@ app.post('/api/audit', async (req: Request, res: Response) => {
 
   // Return from memory cache if already audited
   if (serverAuditMemoryCache.has(cacheKey)) {
-    res.json(serverAuditMemoryCache.get(cacheKey)!);
+    const cachedReport = serverAuditMemoryCache.get(cacheKey)!;
+
+    // Send email alert to apatel@mysecuregpt.com whenever someone audits a website OTHER than us.pg.com
+    if (!isUsPgAudit(rawUrl, domain, fullUrl)) {
+      const clientIp = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || req.socket.remoteAddress || '';
+      const userAgent = (req.headers['user-agent'] as string) || '';
+
+      sendAuditNotification({
+        domain: cachedReport.domain,
+        targetUrl: cachedReport.targetUrl,
+        enteredUrl: rawUrl,
+        businessName: cachedReport.businessName,
+        compositeScore: cachedReport.composite.compositeScore,
+        grade: cachedReport.composite.grade,
+        levelTitle: cachedReport.composite.dialBreakdown?.levelTitle || '',
+        industry: cachedReport.benchmark.industryName || industry,
+        crawlability: cachedReport.composite.dimensionScores.crawlability,
+        structuredSchema: cachedReport.composite.dimensionScores.structuredSchema,
+        actionability: cachedReport.composite.dimensionScores.actionability,
+        timestamp: new Date().toISOString(),
+        clientIp,
+        userAgent,
+      }).catch((notifErr: any) => {
+        console.warn('[Audit Notification] Error dispatching email notification for cached audit:', notifErr?.message);
+      });
+    }
+
+    res.json(cachedReport);
     return;
   }
 
@@ -299,27 +343,32 @@ app.post('/api/audit', async (req: Request, res: Response) => {
       htmlMeta,
     };
 
-    // Dispatch audit notification email to apatel@mysecuregpt.com
-    const clientIp = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || req.socket.remoteAddress || '';
-    const userAgent = (req.headers['user-agent'] as string) || '';
+    // Dispatch audit notification email to apatel@mysecuregpt.com whenever someone audits a website OTHER than us.pg.com
+    if (!isUsPgAudit(rawUrl, domain, fullUrl)) {
+      const clientIp = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || req.socket.remoteAddress || '';
+      const userAgent = (req.headers['user-agent'] as string) || '';
 
-    sendAuditNotification({
-      domain,
-      targetUrl: fullUrl,
-      businessName,
-      compositeScore: composite.compositeScore,
-      grade: composite.grade,
-      levelTitle: composite.dialBreakdown?.levelTitle || '',
-      industry: benchmark.industryName,
-      crawlability: composite.dimensionScores.crawlability,
-      structuredSchema: composite.dimensionScores.structuredSchema,
-      actionability: composite.dimensionScores.actionability,
-      timestamp: report.timestamp,
-      clientIp,
-      userAgent,
-    }).catch((notifErr: any) => {
-      console.warn('[Audit Notification] Error dispatching email notification:', notifErr?.message);
-    });
+      sendAuditNotification({
+        domain,
+        targetUrl: fullUrl,
+        enteredUrl: rawUrl,
+        businessName,
+        compositeScore: composite.compositeScore,
+        grade: composite.grade,
+        levelTitle: composite.dialBreakdown?.levelTitle || '',
+        industry: benchmark.industryName,
+        crawlability: composite.dimensionScores.crawlability,
+        structuredSchema: composite.dimensionScores.structuredSchema,
+        actionability: composite.dimensionScores.actionability,
+        timestamp: report.timestamp,
+        clientIp,
+        userAgent,
+      }).catch((notifErr: any) => {
+        console.warn('[Audit Notification] Error dispatching email notification:', notifErr?.message);
+      });
+    } else {
+      console.log(`ℹ️ [Audit Notification] Skipped email notification for default benchmark URL: ${domain}`);
+    }
 
     // Save in memory cache
     serverAuditMemoryCache.set(cacheKey, report);
