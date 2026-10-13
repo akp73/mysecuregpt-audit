@@ -234,19 +234,19 @@ export default function App() {
 
         {/* Report Content */}
         {report && (
-          <div className="flex flex-col lg:flex-row items-start gap-8 lg:gap-12">
-            {/* Left-Side Clean Clickable Text Navigation (Matches picture) */}
+          <div className="flex flex-col lg:flex-row items-start gap-4 sm:gap-6 lg:gap-6 xl:gap-8">
+            {/* Left-Side Clean Clickable Text Navigation (Smaller text for maximum Executive Summary room) */}
             <nav
-              className="w-full lg:w-56 xl:w-64 shrink-0 lg:sticky lg:top-36 space-y-12 lg:space-y-16 lg:pt-28 select-none"
+              className="w-full lg:w-44 xl:w-48 shrink-0 lg:sticky lg:top-36 space-y-10 lg:space-y-12 lg:pt-24 select-none"
               aria-label="Report section navigation"
             >
               <button
                 type="button"
                 onClick={() => scrollToSection('executive-summary')}
-                className={`block text-left text-lg sm:text-xl transition-colors cursor-pointer ${
+                className={`block text-left text-sm sm:text-[15px] leading-tight transition-colors cursor-pointer ${
                   activeSection === 'executive'
                     ? 'font-bold text-black'
-                    : 'font-normal text-slate-800 hover:text-[#008752]'
+                    : 'font-medium text-slate-700 hover:text-[#008752]'
                 }`}
               >
                 Executive Summary
@@ -255,10 +255,10 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => scrollToSection('competitive-benchmark')}
-                className={`block text-left text-lg sm:text-xl transition-colors cursor-pointer ${
+                className={`block text-left text-sm sm:text-[15px] leading-tight transition-colors cursor-pointer ${
                   activeSection === 'benchmark'
                     ? 'font-bold text-black'
-                    : 'font-normal text-slate-800 hover:text-[#008752]'
+                    : 'font-medium text-slate-700 hover:text-[#008752]'
                 }`}
               >
                 Competitive Benchmark
@@ -267,10 +267,10 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => scrollToSection('detailed-summary')}
-                className={`block text-left text-lg sm:text-xl transition-colors cursor-pointer ${
+                className={`block text-left text-sm sm:text-[15px] leading-tight transition-colors cursor-pointer ${
                   activeSection === 'detailed'
                     ? 'font-bold text-black'
-                    : 'font-normal text-slate-800 hover:text-[#008752]'
+                    : 'font-medium text-slate-700 hover:text-[#008752]'
                 }`}
               >
                 Detailed Summary
