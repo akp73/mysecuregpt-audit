@@ -231,7 +231,11 @@ app.post('/api/audit', async (req: Request, res: Response) => {
       businessName = businessName.replace(/\s*-\s*(Home|Official Site|Official Website|Welcome|Overview).*$/i, '').trim();
     }
 
-    if (!businessName || businessName.length < 2) {
+    if (
+      !businessName ||
+      businessName.length < 2 ||
+      /attention required|just a moment|cloudflare|access denied|robot or human|verify you are human|403 forbidden|security check/i.test(businessName)
+    ) {
       if (domain.includes('pg.com')) businessName = 'Procter & Gamble';
       else if (domain.includes('teamlogicit.com')) businessName = 'TeamLogic IT';
       else if (domain.includes('ora.ai')) businessName = 'Ora.ai';
