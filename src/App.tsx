@@ -235,9 +235,9 @@ export default function App() {
               </button>
             </form>
 
-            {/* Subtext below the form as shown in attachment */}
+            {/* Subtext below the form */}
             <div className="mt-6 text-base sm:text-lg md:text-xl text-slate-800 font-normal tracking-tight">
-              See below what Buyer&apos;s AI Agent on your site...
+              See Below Why Buyer&apos;s AI Isn&apos;t Sending You Leads
             </div>
 
             {/* Error Message */}
