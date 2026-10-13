@@ -43,6 +43,48 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Active section for left navigation tracking
+  const [activeSection, setActiveSection] = useState<'executive' | 'benchmark' | 'detailed'>('executive');
+
+  const scrollToSection = (sectionId: 'executive-summary' | 'competitive-benchmark' | 'detailed-summary') => {
+    if (activeTab !== 'overview') {
+      setActiveTab('overview');
+    }
+    if (sectionId === 'executive-summary') setActiveSection('executive');
+    else if (sectionId === 'competitive-benchmark') setActiveSection('benchmark');
+    else if (sectionId === 'detailed-summary') setActiveSection('detailed');
+
+    setTimeout(() => {
+      const el = document.getElementById(sectionId);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 60);
+  };
+
+  useEffect(() => {
+    if (!report) return;
+
+    const handleScroll = () => {
+      const execEl = document.getElementById('executive-summary');
+      const detailedEl = document.getElementById('detailed-summary');
+      const benchmarkEl = document.getElementById('competitive-benchmark');
+
+      const scrollPos = window.scrollY + 220;
+
+      if (benchmarkEl && scrollPos >= benchmarkEl.offsetTop) {
+        setActiveSection('benchmark');
+      } else if (detailedEl && scrollPos >= detailedEl.offsetTop) {
+        setActiveSection('detailed');
+      } else if (execEl) {
+        setActiveSection('executive');
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [report, activeTab]);
+
   // Fetch industries on mount
   useEffect(() => {
     fetch('/api/industries')
@@ -197,124 +239,269 @@ export default function App() {
 
         {/* Report Content */}
         {report && (
-          <div className="space-y-8">
-            {/* Scorecard Hero Banner */}
-            <ScoreHero report={report} />
+          <div className="flex flex-col lg:flex-row gap-8 items-start">
+            {/* Left-Side Direct Jump Navigation */}
+            <aside className="w-full lg:w-72 lg:shrink-0 lg:sticky lg:top-28 z-20 space-y-4">
+              <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
+                <div className="flex items-center justify-between pb-3 mb-2 border-b border-slate-100">
+                  <span className="text-[11px] font-bold tracking-wider text-slate-500 uppercase">
+                    Jump to Section
+                  </span>
+                  <span className="text-[10px] font-mono text-[#008752] font-semibold bg-emerald-50 px-2 py-0.5 rounded-full">
+                    Direct Links
+                  </span>
+                </div>
 
-            {/* Navigation Tabs */}
-            <div className="border-b border-slate-200 flex items-center gap-1 overflow-x-auto pb-1">
-              <button
-                onClick={() => setActiveTab('overview')}
-                className={`px-4 py-2.5 text-xs font-bold rounded-lg transition-colors cursor-pointer flex items-center gap-2 shrink-0 ${
-                  activeTab === 'overview'
-                    ? 'bg-[#008752] text-white shadow-sm'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-                }`}
-              >
-                <Layers className="w-4 h-4" />
-                Comprehensive Overview
-              </button>
+                <nav className="space-y-2" aria-label="Quick jump section navigation">
+                  {/* 1. Executive Summary */}
+                  <button
+                    type="button"
+                    onClick={() => scrollToSection('executive-summary')}
+                    className={`w-full text-left p-3 rounded-xl transition-all cursor-pointer flex items-start gap-3 border ${
+                      activeSection === 'executive'
+                        ? 'bg-emerald-50/80 border-[#008752] text-slate-900 shadow-2xs ring-1 ring-[#008752]/20'
+                        : 'border-slate-100 text-slate-700 hover:bg-slate-50 hover:border-slate-200'
+                    }`}
+                  >
+                    <div
+                      className={`mt-0.5 p-2 rounded-lg shrink-0 ${
+                        activeSection === 'executive'
+                          ? 'bg-[#008752] text-white shadow-2xs'
+                          : 'bg-slate-100 text-slate-600'
+                      }`}
+                    >
+                      <Layers className="w-4 h-4" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-bold leading-tight text-slate-900">
+                        Executive Summary
+                      </div>
+                      <p className="text-[11px] text-slate-500 mt-1 leading-snug">
+                        Main composite score and score on the 5 questions
+                      </p>
+                    </div>
+                  </button>
 
-              <button
-                onClick={() => setActiveTab('tools')}
-                className={`px-4 py-2.5 text-xs font-bold rounded-lg transition-colors cursor-pointer flex items-center gap-2 shrink-0 ${
-                  activeTab === 'tools'
-                    ? 'bg-[#008752] text-white shadow-sm'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-                }`}
-              >
-                <Sparkles className="w-4 h-4" />
-                7-Tool Benchmark Matrix
-                <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 font-bold">
-                  7 Tools
-                </span>
-              </button>
+                  {/* 2. Competitive Benchmark */}
+                  <button
+                    type="button"
+                    onClick={() => scrollToSection('competitive-benchmark')}
+                    className={`w-full text-left p-3 rounded-xl transition-all cursor-pointer flex items-start gap-3 border ${
+                      activeSection === 'benchmark'
+                        ? 'bg-emerald-50/80 border-[#008752] text-slate-900 shadow-2xs ring-1 ring-[#008752]/20'
+                        : 'border-slate-100 text-slate-700 hover:bg-slate-50 hover:border-slate-200'
+                    }`}
+                  >
+                    <div
+                      className={`mt-0.5 p-2 rounded-lg shrink-0 ${
+                        activeSection === 'benchmark'
+                          ? 'bg-[#008752] text-white shadow-2xs'
+                          : 'bg-slate-100 text-slate-600'
+                      }`}
+                    >
+                      <Trophy className="w-4 h-4" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-bold leading-tight text-slate-900">
+                        Competitive Benchmark
+                      </div>
+                      <p className="text-[11px] text-slate-500 mt-1 leading-snug">
+                        Industry Benchmark & Competitive Ranking
+                      </p>
+                    </div>
+                  </button>
 
-              <button
-                onClick={() => setActiveTab('capabilities')}
-                className={`px-4 py-2.5 text-xs font-bold rounded-lg transition-colors cursor-pointer flex items-center gap-2 shrink-0 ${
-                  activeTab === 'capabilities'
-                    ? 'bg-[#008752] text-white shadow-sm'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-                }`}
-              >
-                <Bot className="w-4 h-4" />
-                Agent Capability & Info Gaps
-                <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-rose-100 text-rose-700 font-bold">
-                  {report.agentFailures.filter((f) => f.status === 'FAILED').length}
-                </span>
-              </button>
+                  {/* 3. Detailed Summary */}
+                  <button
+                    type="button"
+                    onClick={() => scrollToSection('detailed-summary')}
+                    className={`w-full text-left p-3 rounded-xl transition-all cursor-pointer flex items-start gap-3 border ${
+                      activeSection === 'detailed'
+                        ? 'bg-emerald-50/80 border-[#008752] text-slate-900 shadow-2xs ring-1 ring-[#008752]/20'
+                        : 'border-slate-100 text-slate-700 hover:bg-slate-50 hover:border-slate-200'
+                    }`}
+                  >
+                    <div
+                      className={`mt-0.5 p-2 rounded-lg shrink-0 ${
+                        activeSection === 'detailed'
+                          ? 'bg-[#008752] text-white shadow-2xs'
+                          : 'bg-slate-100 text-slate-600'
+                      }`}
+                    >
+                      <Bot className="w-4 h-4" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-bold leading-tight text-slate-900">
+                        Detailed Summary
+                      </div>
+                      <p className="text-[11px] text-slate-500 mt-1 leading-snug">
+                        Agent Capability & Information Gap Analysis
+                      </p>
+                    </div>
+                  </button>
+                </nav>
+              </div>
+            </aside>
 
-              <button
-                onClick={() => setActiveTab('robots')}
-                className={`px-4 py-2.5 text-xs font-bold rounded-lg transition-colors cursor-pointer flex items-center gap-2 shrink-0 ${
-                  activeTab === 'robots'
-                    ? 'bg-[#008752] text-white shadow-sm'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-                }`}
-              >
-                <Cpu className="w-4 h-4" />
-                Robots.txt & Bot Matrix
-              </button>
+            {/* Right-Side Report Main Content Area */}
+            <div className="flex-1 min-w-0 space-y-8 w-full">
+              {/* Scorecard Hero Banner / Executive Summary */}
+              <div id="executive-summary" className="scroll-mt-32">
+                <ScoreHero report={report} />
+              </div>
 
-              <button
-                onClick={() => setActiveTab('schema')}
-                className={`px-4 py-2.5 text-xs font-bold rounded-lg transition-colors cursor-pointer flex items-center gap-2 shrink-0 ${
-                  activeTab === 'schema'
-                    ? 'bg-[#008752] text-white shadow-sm'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-                }`}
-              >
-                <FileJson className="w-4 h-4" />
-                AI Agent Readiness
-              </button>
+              {/* Navigation Tabs */}
+              <div className="border-b border-slate-200 flex items-center gap-1 overflow-x-auto pb-1">
+                <button
+                  onClick={() => setActiveTab('overview')}
+                  className={`px-4 py-2.5 text-xs font-bold rounded-lg transition-colors cursor-pointer flex items-center gap-2 shrink-0 ${
+                    activeTab === 'overview'
+                      ? 'bg-[#008752] text-white shadow-sm'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                  }`}
+                >
+                  <Layers className="w-4 h-4" />
+                  Comprehensive Overview
+                </button>
 
-              <button
-                onClick={() => setActiveTab('benchmark')}
-                className={`px-4 py-2.5 text-xs font-bold rounded-lg transition-colors cursor-pointer flex items-center gap-2 shrink-0 ${
-                  activeTab === 'benchmark'
-                    ? 'bg-[#008752] text-white shadow-sm'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-                }`}
-              >
-                <Trophy className="w-4 h-4" />
-                Industry Benchmark & Competitors
-                <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 font-bold">
-                  #{report.benchmark.targetRank}
-                </span>
-              </button>
+                <button
+                  onClick={() => setActiveTab('tools')}
+                  className={`px-4 py-2.5 text-xs font-bold rounded-lg transition-colors cursor-pointer flex items-center gap-2 shrink-0 ${
+                    activeTab === 'tools'
+                      ? 'bg-[#008752] text-white shadow-sm'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                  }`}
+                >
+                  <Sparkles className="w-4 h-4" />
+                  7-Tool Benchmark Matrix
+                  <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 font-bold">
+                    7 Tools
+                  </span>
+                </button>
 
-              <button
-                onClick={() => setActiveTab('remediation')}
-                className={`px-4 py-2.5 text-xs font-bold rounded-lg transition-colors cursor-pointer flex items-center gap-2 shrink-0 ${
-                  activeTab === 'remediation'
-                    ? 'bg-[#008752] text-white shadow-sm'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-                }`}
-              >
-                <Code className="w-4 h-4" />
-                1-Click Code Remediation
-              </button>
-            </div>
+                <button
+                  onClick={() => setActiveTab('capabilities')}
+                  className={`px-4 py-2.5 text-xs font-bold rounded-lg transition-colors cursor-pointer flex items-center gap-2 shrink-0 ${
+                    activeTab === 'capabilities'
+                      ? 'bg-[#008752] text-white shadow-sm'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                  }`}
+                >
+                  <Bot className="w-4 h-4" />
+                  Agent Capability & Info Gaps
+                  <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-rose-100 text-rose-700 font-bold">
+                    {report.agentFailures.filter((f) => f.status === 'FAILED').length}
+                  </span>
+                </button>
 
-            {/* Active Tab Panel */}
-            <div className="pt-2">
-              {activeTab === 'overview' && (
-                <div className="space-y-8">
-                  {/* 7-Tool Benchmark Matrix Suite */}
+                <button
+                  onClick={() => setActiveTab('robots')}
+                  className={`px-4 py-2.5 text-xs font-bold rounded-lg transition-colors cursor-pointer flex items-center gap-2 shrink-0 ${
+                    activeTab === 'robots'
+                      ? 'bg-[#008752] text-white shadow-sm'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                  }`}
+                >
+                  <Cpu className="w-4 h-4" />
+                  Robots.txt & Bot Matrix
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('schema')}
+                  className={`px-4 py-2.5 text-xs font-bold rounded-lg transition-colors cursor-pointer flex items-center gap-2 shrink-0 ${
+                    activeTab === 'schema'
+                      ? 'bg-[#008752] text-white shadow-sm'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                  }`}
+                >
+                  <FileJson className="w-4 h-4" />
+                  AI Agent Readiness
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('benchmark')}
+                  className={`px-4 py-2.5 text-xs font-bold rounded-lg transition-colors cursor-pointer flex items-center gap-2 shrink-0 ${
+                    activeTab === 'benchmark'
+                      ? 'bg-[#008752] text-white shadow-sm'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                  }`}
+                >
+                  <Trophy className="w-4 h-4" />
+                  Industry Benchmark & Competitors
+                  <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 font-bold">
+                    #{report.benchmark.targetRank}
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('remediation')}
+                  className={`px-4 py-2.5 text-xs font-bold rounded-lg transition-colors cursor-pointer flex items-center gap-2 shrink-0 ${
+                    activeTab === 'remediation'
+                      ? 'bg-[#008752] text-white shadow-sm'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                  }`}
+                >
+                  <Code className="w-4 h-4" />
+                  1-Click Code Remediation
+                </button>
+              </div>
+
+              {/* Active Tab Panel */}
+              <div className="pt-2">
+                {activeTab === 'overview' && (
+                  <div className="space-y-8">
+                    {/* 7-Tool Benchmark Matrix Suite */}
+                    <BenchmarkMatrixView report={report} />
+
+                    {/* Highlight Agent Capability Section (Detailed Summary) */}
+                    <div id="detailed-summary" className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm scroll-mt-32">
+                      <AgentCapabilitiesView
+                        failures={report.agentFailures}
+                        gaps={report.informationGaps}
+                        simulatedTasks={report.simulatedTasks}
+                      />
+                    </div>
+
+                    {/* Competitor Benchmark Snapshot (Competitive Benchmark) */}
+                    <div id="competitive-benchmark" className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm scroll-mt-32">
+                      <IndustryBenchmarkView
+                        benchmark={report.benchmark}
+                        availableIndustries={industries}
+                        onSelectIndustry={handleSwitchIndustry}
+                        isLoading={isLoading}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {activeTab === 'tools' && (
                   <BenchmarkMatrixView report={report} />
+                )}
 
-                  {/* Highlight Agent Capability Section */}
-                  <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+                {activeTab === 'capabilities' && (
+                  <div id="detailed-summary" className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm scroll-mt-32">
                     <AgentCapabilitiesView
                       failures={report.agentFailures}
                       gaps={report.informationGaps}
                       simulatedTasks={report.simulatedTasks}
                     />
                   </div>
+                )}
 
-                  {/* Competitor Benchmark Snapshot */}
+                {activeTab === 'robots' && (
                   <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+                    <RobotsTxtView robots={report.robotsTxt} />
+                  </div>
+                )}
+
+                {activeTab === 'schema' && (
+                  <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+                    <SchemaView schema={report.schema} manifests={report.manifests} />
+                  </div>
+                )}
+
+                {activeTab === 'benchmark' && (
+                  <div id="competitive-benchmark" className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm scroll-mt-32">
                     <IndustryBenchmarkView
                       benchmark={report.benchmark}
                       availableIndustries={industries}
@@ -322,51 +509,14 @@ export default function App() {
                       isLoading={isLoading}
                     />
                   </div>
-                </div>
-              )}
+                )}
 
-              {activeTab === 'tools' && (
-                <BenchmarkMatrixView report={report} />
-              )}
-
-              {activeTab === 'capabilities' && (
-                <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-                  <AgentCapabilitiesView
-                    failures={report.agentFailures}
-                    gaps={report.informationGaps}
-                    simulatedTasks={report.simulatedTasks}
-                  />
-                </div>
-              )}
-
-              {activeTab === 'robots' && (
-                <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-                  <RobotsTxtView robots={report.robotsTxt} />
-                </div>
-              )}
-
-              {activeTab === 'schema' && (
-                <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-                  <SchemaView schema={report.schema} manifests={report.manifests} />
-                </div>
-              )}
-
-              {activeTab === 'benchmark' && (
-                <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-                  <IndustryBenchmarkView
-                    benchmark={report.benchmark}
-                    availableIndustries={industries}
-                    onSelectIndustry={handleSwitchIndustry}
-                    isLoading={isLoading}
-                  />
-                </div>
-              )}
-
-              {activeTab === 'remediation' && (
-                <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-                  <RemediationView remediation={report.remediation} report={report} />
-                </div>
-              )}
+                {activeTab === 'remediation' && (
+                  <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+                    <RemediationView remediation={report.remediation} report={report} />
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}
