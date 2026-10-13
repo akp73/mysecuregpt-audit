@@ -29,7 +29,7 @@ import { AuditReport } from './types/audit';
 import { INITIAL_INDUSTRY_OPTIONS } from './constants/industries';
 
 export default function App() {
-  const [urlInput, setUrlInput] = useState('https://us.pg.com/');
+  const [urlInput, setUrlInput] = useState('');
   const [industry, setIndustry] = useState('consumer_goods');
   const [industries, setIndustries] = useState<
     { id: string; name: string; defaultMedian: number; top10: number }[]
@@ -168,7 +168,7 @@ export default function App() {
                     type="text"
                     value={urlInput}
                     onChange={(e) => setUrlInput(e.target.value)}
-                    placeholder="https://us.pg.com/ or yourcompany.com"
+                    placeholder="Enter your Website Here"
                     required
                     className="w-full bg-slate-50 border border-slate-300 rounded-xl pl-10 pr-4 py-3 text-sm font-mono text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#008752] focus:ring-1 focus:ring-[#008752] transition-colors shadow-2xs"
                   />
@@ -227,7 +227,7 @@ export default function App() {
         {/* Live Multi-Tool Data Gathering Progress (0 to 100) */}
         {isLoading && (
           <MultiToolProgressPanel
-            targetUrl={urlInput}
+            targetUrl={urlInput || 'https://us.pg.com/'}
             isAuditing={isLoading}
           />
         )}
