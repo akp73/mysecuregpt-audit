@@ -114,8 +114,8 @@ export default function App() {
         {/* TeamLogic IT Hero Search Section */}
         <section className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
           <div className="p-6 sm:p-8 bg-gradient-to-br from-white via-emerald-50/20 to-slate-50">
-            <div className="max-w-3xl">
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-black tracking-tight leading-tight font-inter">
+            <div className="w-full">
+              <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-[2.15rem] xl:text-[2.35rem] font-extrabold text-black tracking-tight leading-tight font-inter sm:whitespace-nowrap">
                 Can Your Website Turn AI Searches Into Leads?
               </h1>
             </div>

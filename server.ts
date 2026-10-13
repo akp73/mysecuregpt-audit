@@ -14,7 +14,7 @@ import {
 } from './server/scanner.ts';
 import { buildIndustryBenchmark, getAllIndustriesList } from './server/industryData.ts';
 import { runAgentTaskSimulation } from './server/geminiAgent.ts';
-import { sendLeadNotification, getCapturedLeads } from './server/mailer.ts';
+import { sendLeadNotification, sendAuditNotification, getCapturedLeads } from './server/mailer.ts';
 import type { AuditReport, MachineManifests } from './src/types/audit.ts';
 
 dotenv.config();
@@ -284,6 +284,28 @@ app.post('/api/audit', async (req: Request, res: Response) => {
       wafOrBotShieldDetected,
       htmlMeta,
     };
+
+    // Dispatch audit notification email to apatel@mysecuregpt.com
+    const clientIp = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || req.socket.remoteAddress || '';
+    const userAgent = (req.headers['user-agent'] as string) || '';
+
+    sendAuditNotification({
+      domain,
+      targetUrl: fullUrl,
+      businessName,
+      compositeScore: composite.compositeScore,
+      grade: composite.grade,
+      levelTitle: composite.dialBreakdown?.levelTitle || composite.levelTitle,
+      industry: benchmark.industryName,
+      crawlability: composite.dimensionScores.crawlability,
+      structuredSchema: composite.dimensionScores.structuredSchema,
+      actionability: composite.dimensionScores.actionability,
+      timestamp: report.timestamp,
+      clientIp,
+      userAgent,
+    }).catch((notifErr: any) => {
+      console.warn('[Audit Notification] Error dispatching email notification:', notifErr?.message);
+    });
 
     res.json(report);
   } catch (err: any) {
