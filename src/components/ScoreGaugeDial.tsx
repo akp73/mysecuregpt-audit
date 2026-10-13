@@ -20,6 +20,7 @@ import {
   ShoppingBag,
   PhoneCall,
   Compass,
+  FileDown,
 } from 'lucide-react';
 
 interface ScoreGaugeDialProps {
@@ -28,6 +29,7 @@ interface ScoreGaugeDialProps {
   dialBreakdown?: DialReadinessBreakdown;
   questionsBreakdown?: QuestionsBreakdown;
   tools?: AgentReadinessToolBenchmark[];
+  onDownloadReport?: () => void;
 }
 
 export const ScoreGaugeDial: React.FC<ScoreGaugeDialProps> = ({
@@ -36,6 +38,7 @@ export const ScoreGaugeDial: React.FC<ScoreGaugeDialProps> = ({
   dialBreakdown,
   questionsBreakdown,
   tools,
+  onDownloadReport,
 }) => {
   const [viewMode, setViewMode] = useState<'dials' | 'bars'>('dials');
   const [selectedQuestionId, setSelectedQuestionId] = useState<string | null>(null);
@@ -364,6 +367,20 @@ export const ScoreGaugeDial: React.FC<ScoreGaugeDialProps> = ({
           <p className="text-base sm:text-lg font-bold text-slate-700 mt-1 tracking-tight">
             Composite Score
           </p>
+
+          {/* Download Detailed Report & What to Fix Button */}
+          {onDownloadReport && (
+            <div className="mt-4 pt-1">
+              <button
+                type="button"
+                onClick={onDownloadReport}
+                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#008752] hover:bg-[#007043] text-white font-bold text-xs sm:text-sm shadow-md hover:shadow-lg transition-all cursor-pointer group hover:-translate-y-0.5 active:translate-y-0"
+              >
+                <FileDown className="w-4 h-4 transition-transform group-hover:-translate-y-0.5" />
+                <span>Download Detailed Report & What to Fix</span>
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Right Column: List of successful tools & websites used to come up with ranking with check marks */}

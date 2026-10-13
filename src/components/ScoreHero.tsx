@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   ShieldCheck,
   ShieldAlert,
@@ -9,10 +9,12 @@ import {
   Zap,
   BookOpen,
   ExternalLink,
+  FileDown,
 } from 'lucide-react';
 import { AuditReport } from '../types/audit';
 import { TeamLogicBrandBar } from './TeamLogicLogo';
 import { ScoreGaugeDial } from './ScoreGaugeDial';
+import { DownloadReportModal } from './DownloadReportModal';
 
 interface ScoreHeroProps {
   report: AuditReport;
@@ -20,6 +22,7 @@ interface ScoreHeroProps {
 
 export const ScoreHero: React.FC<ScoreHeroProps> = ({ report }) => {
   const { composite, domain, industry, wafOrBotShieldDetected } = report;
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const getScoreColor = (score: number) => {
     if (score >= 80) return { text: 'text-[#008752]', bg: 'bg-emerald-50', border: 'border-[#008752]/40' };
@@ -45,6 +48,7 @@ export const ScoreHero: React.FC<ScoreHeroProps> = ({ report }) => {
           dialBreakdown={composite.dialBreakdown}
           questionsBreakdown={composite.questionsBreakdown}
           tools={composite.tools}
+          onDownloadReport={() => setIsModalOpen(true)}
         />
       </div>
 
@@ -75,16 +79,28 @@ export const ScoreHero: React.FC<ScoreHeroProps> = ({ report }) => {
               </div>
             </div>
 
-            {/* Verdict Badge */}
-            <div className={`px-4 py-2 rounded-xl border flex items-center gap-2 ${scoreTheme.bg} ${scoreTheme.border}`}>
-              {composite.compositeScore >= 75 ? (
-                <ShieldCheck className="w-5 h-5 text-[#008752]" />
-              ) : (
-                <AlertTriangle className="w-5 h-5 text-amber-600" />
-              )}
-              <span className={`font-bold text-xs sm:text-sm tracking-wide ${scoreTheme.text}`}>
-                {composite.overallVerdict}
-              </span>
+            {/* Action & Verdict Group */}
+            <div className="flex items-center gap-2.5">
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(true)}
+                className="px-3.5 py-2 rounded-xl bg-[#008752] hover:bg-[#007043] text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-sm hover:shadow cursor-pointer group"
+              >
+                <FileDown className="w-3.5 h-3.5 transition-transform group-hover:-translate-y-0.5" />
+                <span>Download Report</span>
+              </button>
+
+              {/* Verdict Badge */}
+              <div className={`px-4 py-2 rounded-xl border flex items-center gap-2 ${scoreTheme.bg} ${scoreTheme.border}`}>
+                {composite.compositeScore >= 75 ? (
+                  <ShieldCheck className="w-5 h-5 text-[#008752]" />
+                ) : (
+                  <AlertTriangle className="w-5 h-5 text-amber-600" />
+                )}
+                <span className={`font-bold text-xs sm:text-sm tracking-wide ${scoreTheme.text}`}>
+                  {composite.overallVerdict}
+                </span>
+              </div>
             </div>
           </div>
 
@@ -207,6 +223,13 @@ export const ScoreHero: React.FC<ScoreHeroProps> = ({ report }) => {
           </div>
         </div>
       </div>
+
+      {/* Pop box modal for user details & 3-page PDF download */}
+      <DownloadReportModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        report={report}
+      />
     </div>
   );
 };
